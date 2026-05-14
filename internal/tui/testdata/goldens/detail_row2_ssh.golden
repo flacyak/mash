@@ -1,0 +1,38 @@
+ Mash - Mosh/SSH Connection Manager                                                                    
+┌──────────────────────────────────────────────────────────────┐ ┌────────────────────────────────────┐
+│ Name        Port      Type      Host        Uptime           │ │                                    │
+│──────────────────────────────────────────────────────────────│ │  Status                            │
+│ prod-web-…  22        SSH       10.0.1.50   PT120H30M        │ │                                    │
+│ staging-db  5432      SSH       db.stagin…  < 1h             │ │  Ping: 3.1ms                       │
+│ bastion     2222      SSH       bastion.c…  -                │ │                                    │
+│ mosh-serv…  60001     Mosh      localhost   PT4H15M          │ │  Connection                        │
+│                                                              │ │                                    │
+│                                                              │ │  host: db.staging.example.com      │
+│                                                              │ │  user: admin                       │
+│                                                              │ │  port: 5432                        │
+│                                                              │ │                                    │
+│                                                              │ └────────────────────────────────────┘
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+│                                                              │                                       
+└──────────────────────────────────────────────────────────────┘                                       
+  4 connections | h/left: back | j/k: change selection | q: quit                                       
