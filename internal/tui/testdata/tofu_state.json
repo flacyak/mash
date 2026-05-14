@@ -1,0 +1,108 @@
+{
+  "format_version": "1.0",
+  "terraform_version": "1.9.0",
+  "values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_instance.prod_web",
+          "mode": "managed",
+          "type": "aws_instance",
+          "name": "prod_web",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "values": {
+            "public_ip": "54.203.12.87",
+            "private_ip": "10.0.1.25",
+            "instance_type": "t3.medium",
+            "tags": {
+              "Name": "ec2-prod-web-us-east"
+            }
+          }
+        },
+        {
+          "address": "aws_instance.staging_worker",
+          "mode": "managed",
+          "type": "aws_instance",
+          "name": "staging_worker",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "values": {
+            "public_ip": "18.237.94.12",
+            "private_ip": "10.0.1.51",
+            "instance_type": "t3.small",
+            "tags": {
+              "Name": "ec2-staging-worker"
+            }
+          }
+        },
+        {
+          "address": "google_compute_instance.data_proc",
+          "mode": "managed",
+          "type": "google_compute_instance",
+          "name": "data_proc",
+          "provider_name": "registry.opentofu.org/hashicorp/google",
+          "values": {
+            "name": "gcp-data-processor",
+            "network_interface": [
+              {
+                "network_ip": "10.128.0.8",
+                "access_config": [
+                  {
+                    "nat_ip": "34.75.128.44"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "address": "google_compute_instance.ml_train",
+          "mode": "managed",
+          "type": "google_compute_instance",
+          "name": "ml_train",
+          "provider_name": "registry.opentofu.org/hashicorp/google",
+          "values": {
+            "name": "gcp-ml-training",
+            "network_interface": [
+              {
+                "network_ip": "10.128.0.42",
+                "access_config": [
+                  {
+                    "nat_ip": "35.229.87.15"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "address": "azurerm_linux_virtual_machine.sql_server",
+          "mode": "managed",
+          "type": "azurerm_linux_virtual_machine",
+          "name": "sql_server",
+          "provider_name": "registry.opentofu.org/hashicorp/azurerm",
+          "values": {
+            "public_ip_address": "20.121.44.218",
+            "private_ip_address": "10.1.0.14",
+            "computer_name": "az-sql-server-01",
+            "tags": {}
+          }
+        },
+        {
+          "address": "azurerm_linux_virtual_machine.k8s_node",
+          "mode": "managed",
+          "type": "azurerm_linux_virtual_machine",
+          "name": "k8s_node",
+          "provider_name": "registry.opentofu.org/hashicorp/azurerm",
+          "values": {
+            "public_ip_address": "20.119.77.36",
+            "private_ip_address": "10.1.0.87",
+            "computer_name": "az-k8s-node-pool-1",
+            "tags": {
+              "Name": "k8s-worker-01"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

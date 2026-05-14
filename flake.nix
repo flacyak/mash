@@ -66,12 +66,47 @@
               mkdir -p "$HOME/.ssh"
               cp internal/tui/testdata/ssh_config "$HOME/.ssh/config"
 
-              echo "=== mash golden regression tests ==="
+              echo "=== mash SSH config golden regression tests ==="
               echo "SSH config:"
               cat "$HOME/.ssh/config"
               echo ""
 
               go test ./internal/tui/ -run TestRealConfigNavigationAndScreens -v -count=1
+
+              runHook postCheck
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p "$out"
+              echo "PASS" > "$out/result"
+              runHook postInstall
+            '';
+          };
+
+          mash-cloud-tests = pkgs.buildGoModule {
+            pname = "mash-cloud-tests";
+            version = "0.1.0";
+            src = ./.;
+            vendorHash = "";
+            doCheck = true;
+
+            checkPhase = ''
+              runHook preCheck
+
+              export HOME=$(mktemp -d)
+              mkdir -p "$HOME/.ssh"
+              cp internal/tui/testdata/ssh_config "$HOME/.ssh/config"
+
+              echo "=== mash cloud discovery regression tests ==="
+              echo "OpenTofu state file:"
+              cat internal/tui/testdata/tofu_state.json | head -20
+              echo ""
+              echo "Tailscale status file:"
+              cat internal/tui/testdata/tailscale_status.json | head -20
+              echo ""
+
+              go test ./internal/tui/ -run TestCloudNavigationAndScreens -v -count=1
 
               runHook postCheck
             '';
@@ -95,9 +130,10 @@
               go
               gopls
               goimports
+              opentofu
             ];
             shellHook = ''
-              echo "mash dev shell — go $(go version)"
+              echo "mash dev shell — go $(go version) | tofu $(tofu version | head -1)"
             '';
           };
         });

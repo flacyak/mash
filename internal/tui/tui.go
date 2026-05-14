@@ -26,8 +26,12 @@ var (
 			Foreground(lipgloss.Color("241")).
 			Padding(0, 1)
 
-	sshStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("75")).Bold(true)
-	moshStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("204")).Bold(true)
+	sshStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("75")).Bold(true)
+	moshStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("204")).Bold(true)
+	ec2Style       = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
+	gcpStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true)
+	azureStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("33")).Bold(true)
+	tailscaleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("141")).Bold(true)
 
 	detailPanelStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.NormalBorder()).
@@ -235,6 +239,18 @@ func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string 
 		c.User = "-"
 	}
 
+	providerLabel := ""
+	switch c.Type {
+	case config.TypeEC2:
+		providerLabel = ec2Style.Render("AWS EC2")
+	case config.TypeGCP:
+		providerLabel = gcpStyle.Render("GCP Compute")
+	case config.TypeAzure:
+		providerLabel = azureStyle.Render("Azure VM")
+	case config.TypeTailscale:
+		providerLabel = tailscaleStyle.Render("Tailscale")
+	}
+
 	statusSection := sectionHeaderStyle.Render("Status")
 	var pingLine string
 	if pinging {
@@ -256,6 +272,16 @@ func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string 
 		statusSection,
 		pingLine,
 		"",
+	)
+	if providerLabel != "" {
+		body = lipgloss.JoinVertical(lipgloss.Left,
+			body,
+			providerLabel,
+			"",
+		)
+	}
+	body = lipgloss.JoinVertical(lipgloss.Left,
+		body,
 		connSection,
 		hostLine,
 		userLine,
@@ -268,21 +294,42 @@ func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string 
 func LoadRows(m *Model) {
 	rows := make([]table.Row, 0, len(m.conns))
 	for _, c := range m.conns {
-		typeStr := string(c.Type)
-		if c.Type == config.TypeSSH {
-			typeStr = sshStyle.Render(typeStr)
-		} else {
-			typeStr = moshStyle.Render(typeStr)
-		}
+		typeStr := styleConnType(c.Type)
 		rows = append(rows, table.Row{c.Name, c.Port, typeStr, c.Host, c.Uptime})
 	}
 	m.table.SetRows(rows)
+}
+
+func styleConnType(ct config.ConnType) string {
+	s := string(ct)
+	switch ct {
+	case config.TypeSSH:
+		return sshStyle.Render(s)
+	case config.TypeMosh:
+		return moshStyle.Render(s)
+	case config.TypeEC2:
+		return ec2Style.Render(s)
+	case config.TypeGCP:
+		return gcpStyle.Render(s)
+	case config.TypeAzure:
+		return azureStyle.Render(s)
+	case config.TypeTailscale:
+		return tailscaleStyle.Render(s)
+	default:
+		return s
+	}
 }
 
 func LoadConnections(m *Model) {
 	conns := config.LoadAllSSHConnections()
 	moshConns := config.DiscoverMoshConnections()
 	conns = append(conns, moshConns...)
+
+	cloudConns, _ := config.DiscoverCloudConnections("")
+	conns = append(conns, cloudConns...)
+
+	tailConns, _ := config.DiscoverTailscaleConnections("")
+	conns = append(conns, tailConns...)
 
 	m.conns = conns
 	LoadRows(m)

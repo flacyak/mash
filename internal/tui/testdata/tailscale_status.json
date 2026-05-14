@@ -1,0 +1,36 @@
+{
+  "Self": {
+    "HostName": "dev-laptop",
+    "DNSName": "dev-laptop.tailed-1234.ts.net",
+    "TailscaleIPs": ["100.64.0.1"],
+    "OS": "linux",
+    "Online": true,
+    "ExitNode": false
+  },
+  "Peer": {
+    "n12345": {
+      "HostName": "home-server",
+      "DNSName": "home-server.tailed-1234.ts.net",
+      "TailscaleIPs": ["100.72.45.89"],
+      "OS": "linux",
+      "Online": true,
+      "ExitNode": false
+    },
+    "n67890": {
+      "HostName": "office-nas",
+      "DNSName": "office-nas.tailed-1234.ts.net",
+      "TailscaleIPs": ["100.91.22.7"],
+      "OS": "linux",
+      "Online": false,
+      "ExitNode": false
+    },
+    "n24680": {
+      "HostName": "vpn-gateway",
+      "DNSName": "vpn-gateway.tailed-1234.ts.net",
+      "TailscaleIPs": ["100.110.5.33"],
+      "OS": "linux",
+      "Online": true,
+      "ExitNode": true
+    }
+  }
+}
