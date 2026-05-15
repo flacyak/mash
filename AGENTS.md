@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Mash** is a terminal TUI (text user interface) for managing SSH, Mosh, cloud VM, and Tailscale connections. It discovers connections from local SSH configs, running Mosh servers, OpenTofu cloud state, and the Tailscale mesh, then presents them in a browsable table with ping-based reachability and a detail panel.
+**Mash** is a terminal TUI (text user interface) for managing SSH, Mosh, and cloud connections. It discovers connections from local SSH configs, running Mosh servers, OpenTofu cloud state, and the Tailscale mesh, then presents them in a browsable table with ping-based reachability and a detail panel.
 
 - **Language:** Go 1.26
 - **Module:** `github.com/hech/mash`
@@ -84,18 +84,18 @@ type Connection struct {
 
 **Key bindings:**
 
-| Key | Context | Action |
-|-----|---------|--------|
-| `q`, `ctrl+c` | Anywhere | Quit |
-| `j`, `down` | Browser | Move cursor down (fires ping in detail mode) |
-| `k`, `up` | Browser | Move cursor up (fires ping in detail mode) |
-| `l`, `right` | Browser | Enter detail panel, start ping |
-| `h`, `left` | Detail panel | Back to browser |
-| `/` | Browser | Open search mode |
-| (typing) | Search | Append character, fuzzy-filter connections |
-| `backspace` | Search | Remove last character, re-filter |
-| `enter` | Search | Commit filtered results, exit search |
-| `esc` or `right` | Search | Cancel and restore full connection list |
+| Key              | Context      | Action                                       |
+| ---------------- | ------------ | -------------------------------------------- |
+| `q`, `ctrl+c`    | Anywhere     | Quit                                         |
+| `j`, `down`      | Browser      | Move cursor down (fires ping in detail mode) |
+| `k`, `up`        | Browser      | Move cursor up (fires ping in detail mode)   |
+| `l`, `right`     | Browser      | Enter detail panel, start ping               |
+| `h`, `left`      | Detail panel | Back to browser                              |
+| `/`              | Browser      | Open search mode                             |
+| (typing)         | Search       | Append character, fuzzy-filter connections   |
+| `backspace`      | Search       | Remove last character, re-filter             |
+| `enter`          | Search       | Commit filtered results, exit search         |
+| `esc` or `right` | Search       | Cancel and restore full connection list      |
 
 **Search** uses a simple sequential fuzzy match (`fuzzyMatch`): each query character must appear in order within the target name or host (case-insensitive). The full connection list is saved to `Model.allConns` when search opens and restored on cancel.
 
@@ -108,6 +108,7 @@ type Connection struct {
 ### Golden file pattern
 
 Every UI test uses **ANSI-stripped golden files**. The `assertGolden` function:
+
 - Strips ANSI escape sequences from the rendered view
 - Compares line-by-line against a `.golden` file in `testdata/goldens/`
 - Supports `go test -update` to regenerate all golden files
@@ -125,11 +126,11 @@ go test ./internal/tui/ -run TestSearchFunctionality -v
 
 ### Test categories
 
-| Test file | Tests | What it covers |
-|-----------|-------|----------------|
-| `tui_test.go` | `TestSmokeNavigationAndScreens`, `TestEmptyState`, `TestArrowKeysAliases`, `TestQuitWithoutConnections`, `TestSearchFunctionality`, `TestSearchOnEmpty`, `TestSearchBackspace` | Mocked connections, full navigation, search UX |
-| `tui_integration_test.go` | `TestRealConfigNavigationAndScreens` | Sets `HOME` to a temp dir with fake `~/.ssh/config`, calls real `LoadAllSSHConnections()` |
-| `tui_cloud_test.go` | `TestCloudNavigationAndScreens` | Fake SSH config + pre-generated OpenTofu state + Tailscale status = 14 total connections |
+| Test file                 | Tests                                                                                                                                                                          | What it covers                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `tui_test.go`             | `TestSmokeNavigationAndScreens`, `TestEmptyState`, `TestArrowKeysAliases`, `TestQuitWithoutConnections`, `TestSearchFunctionality`, `TestSearchOnEmpty`, `TestSearchBackspace` | Mocked connections, full navigation, search UX                                            |
+| `tui_integration_test.go` | `TestRealConfigNavigationAndScreens`                                                                                                                                           | Sets `HOME` to a temp dir with fake `~/.ssh/config`, calls real `LoadAllSSHConnections()` |
+| `tui_cloud_test.go`       | `TestCloudNavigationAndScreens`                                                                                                                                                | Fake SSH config + pre-generated OpenTofu state + Tailscale status = 14 total connections  |
 
 ### The `step` helper
 
@@ -144,12 +145,12 @@ func step(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 ### Test data files
 
-| File | Purpose |
-|------|---------|
-| `testdata/ssh_config` | 5 fake hosts (db, AWS bastion, Redis, Grafana, nginx) |
-| `testdata/tofu_state.json` | 6 cloud VMs (2 EC2, 2 GCP, 2 Azure) |
+| File                             | Purpose                                                  |
+| -------------------------------- | -------------------------------------------------------- |
+| `testdata/ssh_config`            | 5 fake hosts (db, AWS bastion, Redis, Grafana, nginx)    |
+| `testdata/tofu_state.json`       | 6 cloud VMs (2 EC2, 2 GCP, 2 Azure)                      |
 | `testdata/tailscale_status.json` | 3 Tailscale peers (home-server, office-nas, vpn-gateway) |
-| `testdata/infra/main.tf` | OpenTofu project to regenerate the JSON state file |
+| `testdata/infra/main.tf`         | OpenTofu project to regenerate the JSON state file       |
 
 ## Nix
 
