@@ -1,1 +1,5 @@
 mash
+*.test
+vendor/
+*.out
+
