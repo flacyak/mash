@@ -1,21 +1,22 @@
  Mash - Mosh/SSH Connection Manager                                                                                                 
+/    4 matches                                                                                                                      
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Name                                          Port      Type      Host                                          Uptime           │
 │──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-│ prod-db-primary                               5432      SSH       10.0.2.100                                    -                │
-│ aws-bastion-us-east                           22        SSH       bastion.aws.example.com                       -                │
-│ redis-cache-01                                6379      SSH       10.0.3.50                                     -                │
-│ grafana-monitoring                            3000      SSH       monitoring.internal.example.com               -                │
-│ nginx-lb-public                               443       SSH       lb.example.com                                -                │
-│ ec2-prod-web-us-east                          22        EC2       54.203.12.87                                  -                │
-│ ec2-staging-worker                            22        EC2       18.237.94.12                                  -                │
-│ gcp-data-processor                            22        GCP       34.75.128.44                                  -                │
-│ gcp-ml-training                               22        GCP       35.229.87.15                                  -                │
-│ az-sql-server-01                              22        Azure     20.121.44.218                                 -                │
-│ az-k8s-node-pool-1                            22        Azure     20.119.77.36                                  -                │
-│ office-nas                                    443       Tailsca…  office-nas.tailed-1234.ts.net                 -                │
-│ vpn-gateway [exit]                            443       Tailsca…  vpn-gateway.tailed-1234.ts.net                -                │
-│ home-server                                   443       Tailsca…  home-server.tailed-1234.ts.net                -                │
+│ prod-web-01                                   22        SSH       10.0.1.50                                     PT120H30M        │
+│ staging-db                                    5432      SSH       db.staging.example.com                        < 1h             │
+│ bastion                                       2222      SSH       bastion.corp.example.com                      -                │
+│ mosh-server (pid 54321)                       60001     Mosh      localhost                                     PT4H15M          │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
 │                                                                                                                                  │
 │                                                                                                                                  │
 │                                                                                                                                  │
@@ -35,4 +36,4 @@
 │                                                                                                                                  │
 │                                                                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-  14 connections | j/k or arrows: navigate | l/right: select | /: search | q: quit                                                  
+  4 connections |  [4 matched] enter: keep | right: cancel | esc: cancel                                                            

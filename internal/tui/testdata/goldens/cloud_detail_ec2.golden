@@ -13,9 +13,9 @@
 │ gcp-ml-tr…  22        GCP       35.229.87…  -                │ │  user: ec2-user                    │
 │ az-sql-se…  22        Azure     20.121.44…  -                │ │  port: 22                          │
 │ az-k8s-no…  22        Azure     20.119.77…  -                │ │                                    │
-│ home-serv…  443       Tailsca…  home-serv…  -                │ └────────────────────────────────────┘
-│ office-nas  443       Tailsca…  office-na…  -                │                                       
+│ office-nas  443       Tailsca…  office-na…  -                │ └────────────────────────────────────┘
 │ vpn-gatew…  443       Tailsca…  vpn-gatew…  -                │                                       
+│ home-serv…  443       Tailsca…  home-serv…  -                │                                       
 │                                                              │                                       
 │                                                              │                                       
 │                                                              │                                       

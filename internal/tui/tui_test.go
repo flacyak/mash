@@ -242,3 +242,127 @@ func TestQuitWithoutConnections(t *testing.T) {
 		t.Fatal("q should quit even with no connections")
 	}
 }
+
+func TestSearchFunctionality(t *testing.T) {
+	m := smModel()
+	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
+
+	// Start search with '/'.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	if !m.searching {
+		t.Fatal("expected search mode after /")
+	}
+	if len(m.allConns) != 4 {
+		t.Fatalf("expected 4 saved allConns, got %d", len(m.allConns))
+	}
+	assertGolden(t, "search_open", m.View())
+
+	// Type 'b' - matches prod-web-01, staging-db, bastion (all contain 'b' in name).
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	if m.searchQuery != "b" {
+		t.Fatalf("expected query 'b', got %q", m.searchQuery)
+	}
+	if len(m.conns) != 3 {
+		t.Fatalf("expected 3 matches for 'b', got %d", len(m.conns))
+	}
+	assertGolden(t, "search_query_b", m.View())
+
+	// Type 'a' - "ba" matches bastion (name) and staging-db (host "db.staging...").
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	if len(m.conns) != 2 {
+		t.Fatalf("expected 2 matches for 'ba', got %d", len(m.conns))
+	}
+	assertGolden(t, "search_query_ba", m.View())
+
+	// Type 's' - "bas" only matches bastion.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	if len(m.conns) != 1 {
+		t.Fatalf("expected 1 match for 'bas', got %d", len(m.conns))
+	}
+	assertGolden(t, "search_query_bas", m.View())
+
+	// Hit Enter to commit the search.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyEnter})
+	if m.searching {
+		t.Fatal("expected to exit search mode after enter")
+	}
+	if len(m.conns) != 1 {
+		t.Fatalf("expected 1 conn after committing search, got %d", len(m.conns))
+	}
+	assertGolden(t, "search_committed", m.View())
+
+	// Start another search with '/' on the filtered list.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	if !m.searching {
+		t.Fatal("expected search mode after /")
+	}
+
+	// Type 'z' - should match nothing.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'z'}})
+	if len(m.conns) != 0 {
+		t.Fatalf("expected 0 matches for 'z', got %d", len(m.conns))
+	}
+	assertGolden(t, "search_query_none", m.View())
+
+	// Escape to cancel search.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyEsc})
+	if m.searching {
+		t.Fatal("expected to exit search mode after esc")
+	}
+	if len(m.conns) != 1 {
+		t.Fatalf("expected 1 conn after canceling search, got %d", len(m.conns))
+	}
+
+	// Now cancel with right arrow via opening another search.
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRight})
+	if m.searching {
+		t.Fatal("expected to exit search mode after right")
+	}
+	if len(m.conns) != 1 {
+		t.Fatalf("expected 1 conn after right-canceling search, got %d", len(m.conns))
+	}
+
+	assertGolden(t, "search_after_cancel", m.View())
+}
+
+func TestSearchOnEmpty(t *testing.T) {
+	m := NewModel()
+	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
+
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	if m.searching {
+		t.Fatal("search should not activate on empty connection list")
+	}
+}
+
+func TestSearchBackspace(t *testing.T) {
+	m := smModel()
+	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
+
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	if m.searchQuery != "bas" {
+		t.Fatalf("expected query 'bas', got %q", m.searchQuery)
+	}
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	if m.searchQuery != "ba" {
+		t.Fatalf("expected query 'ba' after backspace, got %q", m.searchQuery)
+	}
+
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	if m.searchQuery != "b" {
+		t.Fatalf("expected query 'b', got %q", m.searchQuery)
+	}
+
+	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	if m.searchQuery != "" {
+		t.Fatalf("expected empty query, got %q", m.searchQuery)
+	}
+	if len(m.conns) != 4 {
+		t.Fatalf("expected all 4 connections after clearing query, got %d", len(m.conns))
+	}
+}

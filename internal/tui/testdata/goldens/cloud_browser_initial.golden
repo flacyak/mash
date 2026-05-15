@@ -13,9 +13,9 @@
 │ gcp-ml-training                               22        GCP       35.229.87.15                                  -                │
 │ az-sql-server-01                              22        Azure     20.121.44.218                                 -                │
 │ az-k8s-node-pool-1                            22        Azure     20.119.77.36                                  -                │
-│ home-server                                   443       Tailsca…  home-server.tailed-1234.ts.net                -                │
 │ office-nas                                    443       Tailsca…  office-nas.tailed-1234.ts.net                 -                │
 │ vpn-gateway [exit]                            443       Tailsca…  vpn-gateway.tailed-1234.ts.net                -                │
+│ home-server                                   443       Tailsca…  home-server.tailed-1234.ts.net                -                │
 │                                                                                                                                  │
 │                                                                                                                                  │
 │                                                                                                                                  │
@@ -35,4 +35,4 @@
 │                                                                                                                                  │
 │                                                                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-  14 connections | j/k or arrows: navigate | l/right: select | q: quit                                                              
+  14 connections | j/k or arrows: navigate | l/right: select | /: search | q: quit                                                  

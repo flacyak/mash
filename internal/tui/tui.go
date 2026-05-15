@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -50,16 +51,32 @@ var (
 	pingOk     = lipgloss.NewStyle().Foreground(lipgloss.Color("120")).Bold(true)
 	pingFail   = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
 	pingWait   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+
+	searchBoxStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("229")).
+			Background(lipgloss.Color("236")).
+			Padding(0, 1)
+
+	searchPromptStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("86")).
+				Bold(true)
+
+	searchMatchStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("86")).
+				Bold(true)
 )
 
 type Model struct {
-	table    table.Model
-	conns    []config.Connection
-	width    int
-	height   int
-	selected bool
-	pingMs   string
-	pinging  bool
+	table       table.Model
+	conns       []config.Connection
+	allConns    []config.Connection
+	width       int
+	height      int
+	selected    bool
+	pingMs      string
+	pinging     bool
+	searching   bool
+	searchQuery string
 }
 
 type pingResultMsg struct {
@@ -146,9 +163,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		if m.searching {
+			return m.handleSearchKey(msg)
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+
+		case "/":
+			if len(m.conns) > 0 && !m.selected {
+				m.searching = true
+				m.searchQuery = ""
+				m.allConns = append([]config.Connection{}, m.conns...)
+				return m, nil
+			}
+			return m, nil
 
 		case "l", "right":
 			if !m.selected && len(m.conns) > 0 {
@@ -203,14 +233,92 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "enter":
+		m.searching = false
+		return *m, nil
+
+	case "esc":
+		m.searching = false
+		m.conns = m.allConns
+		LoadRows(m)
+		m.table.SetCursor(0)
+		return *m, nil
+
+	case "l", "right":
+		m.searching = false
+		m.conns = m.allConns
+		LoadRows(m)
+		m.table.SetCursor(0)
+		return *m, nil
+
+	case "backspace":
+		if len(m.searchQuery) > 0 {
+			m.searchQuery = m.searchQuery[:len(m.searchQuery)-1]
+			m.filterConns()
+		}
+		return *m, nil
+
+	case " ", "tab", "left", "up", "down", "ctrl+c":
+		return *m, nil
+
+	default:
+		if len(msg.Runes) == 1 {
+			m.searchQuery += string(msg.Runes[0])
+			m.filterConns()
+		}
+		return *m, nil
+	}
+}
+
+func (m *Model) filterConns() {
+	if m.searchQuery == "" {
+		m.conns = m.allConns
+	} else {
+		filtered := make([]config.Connection, 0)
+		for _, c := range m.allConns {
+			if fuzzyMatch(m.searchQuery, c.Name) || fuzzyMatch(m.searchQuery, c.Host) {
+				filtered = append(filtered, c)
+			}
+		}
+		m.conns = filtered
+	}
+	LoadRows(m)
+	if len(m.conns) > 0 {
+		m.table.SetCursor(0)
+	}
+}
+
+func fuzzyMatch(query, target string) bool {
+	q := strings.ToLower(query)
+	t := strings.ToLower(target)
+	qi := 0
+	for i := 0; i < len(t) && qi < len(q); i++ {
+		if t[i] == q[qi] {
+			qi++
+		}
+	}
+	return qi == len(q)
+}
+
 func (m Model) View() string {
 	title := titleStyle.Render("Mash - Mosh/SSH Connection Manager")
+
+	if m.searching {
+		tableContent := baseStyle.Render(m.table.View())
+		searchBar := renderSearchBar(m.searchQuery, len(m.conns))
+		count := len(m.conns)
+		hint := fmt.Sprintf(" [%d matched] enter: keep | right: cancel | esc: cancel", count)
+		footer := footerStyle.Render(fmt.Sprintf(" %d connections | %s", count, hint))
+		return lipgloss.JoinVertical(lipgloss.Left, title, searchBar, tableContent, footer)
+	}
 
 	tableContent := baseStyle.Render(m.table.View())
 
 	if !m.selected {
 		count := len(m.table.Rows())
-		hint := "j/k or arrows: navigate | l/right: select | q: quit"
+		hint := "j/k or arrows: navigate | l/right: select | /: search | q: quit"
 		if count == 0 {
 			hint = "No connections found | q: quit"
 		}
@@ -232,6 +340,13 @@ func (m Model) View() string {
 		lipgloss.JoinHorizontal(lipgloss.Top, tableContent, detailContent),
 		footer,
 	)
+}
+
+func renderSearchBar(query string, matchCount int) string {
+	prompt := searchPromptStyle.Render("/")
+	input := searchBoxStyle.Render(query)
+	count := footerStyle.Render(fmt.Sprintf(" %d matches", matchCount))
+	return lipgloss.JoinHorizontal(lipgloss.Left, prompt, input, count)
 }
 
 func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string {
