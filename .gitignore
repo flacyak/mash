@@ -2,4 +2,4 @@ mash
 *.test
 vendor/
 *.out
-
+dist/
