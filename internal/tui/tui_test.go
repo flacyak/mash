@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/hech/mash/internal/config"
 )
@@ -64,6 +64,21 @@ func smModel() Model {
 func step(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	nm, cmd := m.Update(msg)
 	return nm.(Model), cmd
+}
+
+// viewStr returns the rendered view content as a string for golden comparison.
+func viewStr(m Model) string {
+	return m.View().Content
+}
+
+// keyRune builds a printable-character key press message.
+func keyRune(r rune) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: r, Text: string(r)}
+}
+
+// keyCode builds a special-key (non-printable) key press message.
+func keyCode(code rune) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: code}
 }
 
 func goldenPath(t *testing.T, name string) string {
@@ -148,40 +163,40 @@ func TestSmokeNavigationAndScreens(t *testing.T) {
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// Screen 1: Browser view, row 0 (prod-web-01) selected.
-	assertGolden(t, "browser_initial", m.View())
+	assertGolden(t, "browser_initial", viewStr(m))
 
 	// Navigate down twice to row 2 (bastion).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
-	assertGolden(t, "browser_row3", m.View())
+	m, _ = step(m, keyRune('j'))
+	m, _ = step(m, keyRune('j'))
+	assertGolden(t, "browser_row3", viewStr(m))
 
 	// Enter selection with 'l' on bastion.
 	var cmd tea.Cmd
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
+	m, cmd = step(m, keyRune('l'))
 	if cmd == nil {
 		t.Fatal("expected ping command after entering selection")
 	}
 	m, _ = step(m, pingResultMsg{ms: "12.5ms"})
-	assertGolden(t, "detail_row3", m.View())
+	assertGolden(t, "detail_row3", viewStr(m))
 
 	// Navigate down to row 3 (mosh-server) while selected.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{err: "unreachable"})
-	assertGolden(t, "detail_row4_mosh", m.View())
+	assertGolden(t, "detail_row4_mosh", viewStr(m))
 
 	// Navigate up twice: first back to bastion, then to staging-db.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	m, _ = step(m, keyRune('k'))
 	m, _ = step(m, pingResultMsg{ms: "14.2ms"})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	m, _ = step(m, keyRune('k'))
 	m, _ = step(m, pingResultMsg{ms: "3.1ms"})
-	assertGolden(t, "detail_row2_ssh", m.View())
+	assertGolden(t, "detail_row2_ssh", viewStr(m))
 
 	// Leave selection with 'h'.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
-	assertGolden(t, "browser_after_select", m.View())
+	m, _ = step(m, keyRune('h'))
+	assertGolden(t, "browser_after_select", viewStr(m))
 
 	// Quit with 'q'.
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	m, cmd = step(m, keyRune('q'))
 	if cmd == nil {
 		t.Fatal("expected quit command")
 	}
@@ -190,7 +205,7 @@ func TestSmokeNavigationAndScreens(t *testing.T) {
 func TestEmptyState(t *testing.T) {
 	m := NewModel()
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
-	assertGolden(t, "empty_state", m.View())
+	assertGolden(t, "empty_state", viewStr(m))
 }
 
 func TestArrowKeysAliases(t *testing.T) {
@@ -198,9 +213,9 @@ func TestArrowKeysAliases(t *testing.T) {
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// down arrow equals j
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyDown})
+	m, _ = step(m, keyCode(tea.KeyDown))
 	// left arrow equals h (no-op when not selected)
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyLeft})
+	m, _ = step(m, keyCode(tea.KeyLeft))
 	if m.selected {
 		t.Fatal("left arrow should not toggle selection when not in selection mode")
 	}
@@ -210,7 +225,7 @@ func TestArrowKeysAliases(t *testing.T) {
 
 	// right arrow equals l
 	var cmd tea.Cmd
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRight})
+	m, cmd = step(m, keyCode(tea.KeyRight))
 	if cmd == nil {
 		t.Fatal("expected ping command after right arrow selection")
 	}
@@ -220,14 +235,14 @@ func TestArrowKeysAliases(t *testing.T) {
 	m, _ = step(m, pingResultMsg{ms: "8.0ms"})
 
 	// up arrow equals k
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyUp})
+	m, _ = step(m, keyCode(tea.KeyUp))
 	m, _ = step(m, pingResultMsg{ms: "5.0ms"})
 	if m.table.Cursor() != 0 {
 		t.Fatalf("expected cursor at row 0 after up, got %d", m.table.Cursor())
 	}
 
 	// left arrow equals h (exit selection)
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyLeft})
+	m, _ = step(m, keyCode(tea.KeyLeft))
 	if m.selected {
 		t.Fatal("left arrow should exit selection mode")
 	}
@@ -237,7 +252,7 @@ func TestQuitWithoutConnections(t *testing.T) {
 	m := NewModel()
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
-	_, cmd := step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	_, cmd := step(m, keyRune('q'))
 	if cmd == nil {
 		t.Fatal("q should quit even with no connections")
 	}
@@ -248,64 +263,64 @@ func TestSearchFunctionality(t *testing.T) {
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// Start search with '/'.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	m, _ = step(m, keyRune('/'))
 	if !m.searching {
 		t.Fatal("expected search mode after /")
 	}
 	if len(m.allConns) != 4 {
 		t.Fatalf("expected 4 saved allConns, got %d", len(m.allConns))
 	}
-	assertGolden(t, "search_open", m.View())
+	assertGolden(t, "search_open", viewStr(m))
 
 	// Type 'b' - matches prod-web-01, staging-db, bastion (all contain 'b' in name).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	m, _ = step(m, keyRune('b'))
 	if m.searchQuery != "b" {
 		t.Fatalf("expected query 'b', got %q", m.searchQuery)
 	}
 	if len(m.conns) != 3 {
 		t.Fatalf("expected 3 matches for 'b', got %d", len(m.conns))
 	}
-	assertGolden(t, "search_query_b", m.View())
+	assertGolden(t, "search_query_b", viewStr(m))
 
 	// Type 'a' - "ba" matches bastion (name) and staging-db (host "db.staging...").
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	m, _ = step(m, keyRune('a'))
 	if len(m.conns) != 2 {
 		t.Fatalf("expected 2 matches for 'ba', got %d", len(m.conns))
 	}
-	assertGolden(t, "search_query_ba", m.View())
+	assertGolden(t, "search_query_ba", viewStr(m))
 
 	// Type 's' - "bas" only matches bastion.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	m, _ = step(m, keyRune('s'))
 	if len(m.conns) != 1 {
 		t.Fatalf("expected 1 match for 'bas', got %d", len(m.conns))
 	}
-	assertGolden(t, "search_query_bas", m.View())
+	assertGolden(t, "search_query_bas", viewStr(m))
 
 	// Hit Enter to commit the search.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyEnter})
+	m, _ = step(m, keyCode(tea.KeyEnter))
 	if m.searching {
 		t.Fatal("expected to exit search mode after enter")
 	}
 	if len(m.conns) != 1 {
 		t.Fatalf("expected 1 conn after committing search, got %d", len(m.conns))
 	}
-	assertGolden(t, "search_committed", m.View())
+	assertGolden(t, "search_committed", viewStr(m))
 
 	// Start another search with '/' on the filtered list.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	m, _ = step(m, keyRune('/'))
 	if !m.searching {
 		t.Fatal("expected search mode after /")
 	}
 
 	// Type 'z' - should match nothing.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'z'}})
+	m, _ = step(m, keyRune('z'))
 	if len(m.conns) != 0 {
 		t.Fatalf("expected 0 matches for 'z', got %d", len(m.conns))
 	}
-	assertGolden(t, "search_query_none", m.View())
+	assertGolden(t, "search_query_none", viewStr(m))
 
 	// Escape to cancel search.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyEsc})
+	m, _ = step(m, keyCode(tea.KeyEsc))
 	if m.searching {
 		t.Fatal("expected to exit search mode after esc")
 	}
@@ -314,9 +329,9 @@ func TestSearchFunctionality(t *testing.T) {
 	}
 
 	// Now cancel with right arrow via opening another search.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRight})
+	m, _ = step(m, keyRune('/'))
+	m, _ = step(m, keyRune('b'))
+	m, _ = step(m, keyCode(tea.KeyRight))
 	if m.searching {
 		t.Fatal("expected to exit search mode after right")
 	}
@@ -324,14 +339,14 @@ func TestSearchFunctionality(t *testing.T) {
 		t.Fatalf("expected 1 conn after right-canceling search, got %d", len(m.conns))
 	}
 
-	assertGolden(t, "search_after_cancel", m.View())
+	assertGolden(t, "search_after_cancel", viewStr(m))
 }
 
 func TestSearchOnEmpty(t *testing.T) {
 	m := NewModel()
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	m, _ = step(m, keyRune('/'))
 	if m.searching {
 		t.Fatal("search should not activate on empty connection list")
 	}
@@ -341,24 +356,24 @@ func TestSearchBackspace(t *testing.T) {
 	m := smModel()
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	m, _ = step(m, keyRune('/'))
+	m, _ = step(m, keyRune('b'))
+	m, _ = step(m, keyRune('a'))
+	m, _ = step(m, keyRune('s'))
 	if m.searchQuery != "bas" {
 		t.Fatalf("expected query 'bas', got %q", m.searchQuery)
 	}
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	m, _ = step(m, keyCode(tea.KeyBackspace))
 	if m.searchQuery != "ba" {
 		t.Fatalf("expected query 'ba' after backspace, got %q", m.searchQuery)
 	}
 
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	m, _ = step(m, keyCode(tea.KeyBackspace))
 	if m.searchQuery != "b" {
 		t.Fatalf("expected query 'b', got %q", m.searchQuery)
 	}
 
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyBackspace})
+	m, _ = step(m, keyCode(tea.KeyBackspace))
 	if m.searchQuery != "" {
 		t.Fatalf("expected empty query, got %q", m.searchQuery)
 	}

@@ -2,5 +2,5 @@
 
 A mosh/ssh manager that sync's with cloud infra.
 
-![List Sample](assets/sample.png "List Sample")
-![Detailed Sample](assets/ping_sample.png "Detailed Sample")
+![sample](assets/sample.png "sample")
+![detail](assets/ping_sample.png "detail")

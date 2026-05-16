@@ -6,26 +6,45 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/hech/mash/internal/config"
 )
 
+const (
+	titleCardWidth   = 48
+	detailPanelWidth = 36
+	sectionRuleLen   = 24
+)
+
 var (
 	baseStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
+			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("240"))
 
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("86")).
-			Bold(true).
+	titleCardStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("240")).
 			Padding(0, 1)
 
+	titleBrandStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("86")).
+			Bold(true)
+
+	titleSubStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245"))
+
 	footerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Padding(0, 1)
+			Foreground(lipgloss.Color("241"))
+
+	footerKeyStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("86")).
+			Bold(true)
+
+	footerSepStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("240"))
 
 	sshStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("75")).Bold(true)
 	moshStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("204")).Bold(true)
@@ -35,16 +54,18 @@ var (
 	tailscaleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("141")).Bold(true)
 
 	detailPanelStyle = lipgloss.NewStyle().
-				BorderStyle(lipgloss.NormalBorder()).
+				Border(lipgloss.RoundedBorder()).
 				BorderForeground(lipgloss.Color("240")).
-				Padding(1, 2).
-				MarginLeft(1)
+				Padding(0, 1).
+				MarginLeft(1).
+				Width(detailPanelWidth)
 
 	sectionHeaderStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("86")).
-				Bold(true).
-				Underline(true).
-				MarginBottom(1)
+				Bold(true)
+
+	sectionRuleStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("240"))
 
 	keyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
 	valueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("229"))
@@ -52,18 +73,20 @@ var (
 	pingFail   = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
 	pingWait   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
 
-	searchBoxStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("229")).
-			Background(lipgloss.Color("236")).
-			Padding(0, 1)
+	emptyHintStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245")).
+			Italic(true)
 
 	searchPromptStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("86")).
 				Bold(true)
 
-	searchMatchStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("86")).
+	searchQueryStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("229")).
 				Bold(true)
+
+	searchCountStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("245"))
 )
 
 type Model struct {
@@ -112,13 +135,14 @@ func NewModel() Model {
 		table.WithColumns(columns),
 		table.WithFocused(true),
 		table.WithHeight(20),
+		table.WithWidth(120),
 	)
 
 	s := table.DefaultStyles()
 	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
+		Foreground(lipgloss.Color("245")).
+		Border(lipgloss.NormalBorder(), false, false, true, false).
 		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
 		Bold(true)
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("229")).
@@ -138,6 +162,12 @@ func (m *Model) resizeTable() {
 	cols[0].Width = max(10, tableWidth-72)
 	cols[3].Width = max(10, tableWidth-72)
 	m.table.SetColumns(cols)
+
+	innerWidth := 0
+	for _, c := range cols {
+		innerWidth += c.Width + 2
+	}
+	m.table.SetWidth(innerWidth)
 	m.table.SetHeight(m.height - 6)
 }
 
@@ -162,7 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		if m.searching {
 			return m.handleSearchKey(msg)
 		}
@@ -233,7 +263,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m *Model) handleSearchKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case "enter":
 		m.searching = false
@@ -260,12 +290,12 @@ func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return *m, nil
 
-	case " ", "tab", "left", "up", "down", "ctrl+c":
+	case "space", "tab", "left", "up", "down", "ctrl+c":
 		return *m, nil
 
 	default:
-		if len(msg.Runes) == 1 {
-			m.searchQuery += string(msg.Runes[0])
+		if msg.Text != "" {
+			m.searchQuery += msg.Text
 			m.filterConns()
 		}
 		return *m, nil
@@ -302,39 +332,60 @@ func fuzzyMatch(query, target string) bool {
 	return qi == len(q)
 }
 
-func (m Model) View() string {
-	title := titleStyle.Render("Mash - Mosh/SSH Connection Manager")
+func (m Model) View() tea.View {
+	v := tea.NewView(m.renderScreen())
+	v.AltScreen = true
+	return v
+}
+
+func (m Model) renderScreen() string {
+	title := renderTitleCard()
 
 	if m.searching {
-		tableContent := baseStyle.Render(m.table.View())
 		searchBar := renderSearchBar(m.searchQuery, len(m.conns))
-		count := len(m.conns)
-		hint := fmt.Sprintf(" [%d matched] enter: keep | right: cancel | esc: cancel", count)
-		footer := footerStyle.Render(fmt.Sprintf(" %d connections | %s", count, hint))
+		tableContent := baseStyle.Render(m.table.View())
+		footer := renderFooter(len(m.conns),
+			footerItem("type", "filter"),
+			footerItem("enter", "keep"),
+			footerItem("esc", "cancel"),
+		)
 		return lipgloss.JoinVertical(lipgloss.Left, title, searchBar, tableContent, footer)
 	}
 
 	tableContent := baseStyle.Render(m.table.View())
 
 	if !m.selected {
-		count := len(m.table.Rows())
-		hint := "j/k or arrows: navigate | l/right: select | /: search | q: quit"
-		if count == 0 {
-			hint = "No connections found | q: quit"
+		if len(m.conns) == 0 {
+			hint := emptyHintStyle.Render("  No connections discovered yet.")
+			footer := renderFooter(0, footerItem("q", "quit"))
+			return lipgloss.JoinVertical(lipgloss.Left, title, tableContent, "", hint, "", footer)
 		}
-		footer := footerStyle.Render(fmt.Sprintf(" %d connections | %s", count, hint))
+		footer := renderFooter(len(m.conns),
+			footerItem("j/k", "nav"),
+			footerItem("l", "select"),
+			footerItem("/", "search"),
+			footerItem("q", "quit"),
+		)
 		return lipgloss.JoinVertical(lipgloss.Left, title, tableContent, footer)
 	}
 
 	idx := m.table.Cursor()
 	if idx >= len(m.conns) {
-		footer := footerStyle.Render(fmt.Sprintf(" %d connections | h/left: back | j/k: change | q: quit", len(m.table.Rows())))
+		footer := renderFooter(len(m.conns),
+			footerItem("h", "back"),
+			footerItem("j/k", "switch"),
+			footerItem("q", "quit"),
+		)
 		return lipgloss.JoinVertical(lipgloss.Left, title, tableContent, footer)
 	}
 
 	c := m.conns[idx]
 	detailContent := renderDetailPanel(c, m.pingMs, m.pinging)
-	footer := footerStyle.Render(fmt.Sprintf(" %d connections | h/left: back | j/k: change selection | q: quit", len(m.table.Rows())))
+	footer := renderFooter(len(m.conns),
+		footerItem("h", "back"),
+		footerItem("j/k", "switch"),
+		footerItem("q", "quit"),
+	)
 
 	return lipgloss.JoinVertical(lipgloss.Left, title,
 		lipgloss.JoinHorizontal(lipgloss.Top, tableContent, detailContent),
@@ -342,11 +393,35 @@ func (m Model) View() string {
 	)
 }
 
+func renderTitleCard() string {
+	brand := titleBrandStyle.Render("MASH")
+	sub := titleSubStyle.Render("Mosh / SSH / Cloud Connection Manager")
+	content := " " + brand + "  " + sub
+	return titleCardStyle.Render(content)
+}
+
+type footerEntry struct {
+	key, text string
+}
+
+func footerItem(key, text string) footerEntry {
+	return footerEntry{key: key, text: text}
+}
+
+func renderFooter(count int, items ...footerEntry) string {
+	parts := []string{" " + footerKeyStyle.Render(fmt.Sprintf("%d", count)) + "  " + footerStyle.Render("connections")}
+	for _, it := range items {
+		parts = append(parts, footerKeyStyle.Render(it.key)+"  "+footerStyle.Render(it.text))
+	}
+	sep := footerSepStyle.Render("  · ")
+	return strings.Join(parts, sep)
+}
+
 func renderSearchBar(query string, matchCount int) string {
-	prompt := searchPromptStyle.Render("/")
-	input := searchBoxStyle.Render(query)
-	count := footerStyle.Render(fmt.Sprintf(" %d matches", matchCount))
-	return lipgloss.JoinHorizontal(lipgloss.Left, prompt, input, count)
+	prompt := searchPromptStyle.Render(" / search")
+	q := searchQueryStyle.Render(query)
+	count := searchCountStyle.Render(fmt.Sprintf("%d matches", matchCount))
+	return prompt + "   " + q + "   " + count
 }
 
 func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string {
@@ -354,56 +429,63 @@ func renderDetailPanel(c config.Connection, pingMs string, pinging bool) string 
 		c.User = "-"
 	}
 
-	providerLabel := ""
-	switch c.Type {
-	case config.TypeEC2:
-		providerLabel = ec2Style.Render("AWS EC2")
-	case config.TypeGCP:
-		providerLabel = gcpStyle.Render("GCP Compute")
-	case config.TypeAzure:
-		providerLabel = azureStyle.Render("Azure VM")
-	case config.TypeTailscale:
-		providerLabel = tailscaleStyle.Render("Tailscale")
-	}
+	typeLine := " " + renderTypeLabel(c.Type)
 
-	statusSection := sectionHeaderStyle.Render("Status")
+	rule := sectionRuleStyle.Render(strings.Repeat("─", sectionRuleLen))
+
 	var pingLine string
-	if pinging {
-		pingLine = pingWait.Render("Ping: ...")
-	} else if pingMs == "" {
-		pingLine = pingWait.Render("Ping: -")
-	} else if pingMs == "unreachable" || pingMs == "no response" {
-		pingLine = pingFail.Render("Ping: " + pingMs)
-	} else {
-		pingLine = pingOk.Render("Ping: " + pingMs)
+	switch {
+	case pinging:
+		pingLine = pingWait.Render(" ⠿ pinging…")
+	case pingMs == "":
+		pingLine = pingWait.Render(" · awaiting")
+	case pingMs == "unreachable" || pingMs == "no response":
+		pingLine = pingFail.Render(" ✗ " + pingMs)
+	default:
+		pingLine = pingOk.Render(" ✓ " + pingMs)
 	}
 
-	connSection := sectionHeaderStyle.Render("Connection")
-	hostLine := keyStyle.Render("host: ") + valueStyle.Render(c.Host)
-	userLine := keyStyle.Render("user: ") + valueStyle.Render(c.User)
-	portLine := keyStyle.Render("port: ") + valueStyle.Render(c.Port)
-
-	body := lipgloss.JoinVertical(lipgloss.Left,
-		statusSection,
+	lines := []string{
+		"",
+		" " + typeLine,
+		"",
+		sectionHeaderStyle.Render(" Status"),
+		" " + rule,
 		pingLine,
 		"",
-	)
-	if providerLabel != "" {
-		body = lipgloss.JoinVertical(lipgloss.Left,
-			body,
-			providerLabel,
-			"",
-		)
+		sectionHeaderStyle.Render(" Connection"),
+		" " + rule,
+		" " + keyStyle.Render(fmt.Sprintf("%-4s", "host")) + " " + valueStyle.Render(c.Host),
+		" " + keyStyle.Render(fmt.Sprintf("%-4s", "user")) + " " + valueStyle.Render(c.User),
+		" " + keyStyle.Render(fmt.Sprintf("%-4s", "port")) + " " + valueStyle.Render(c.Port),
 	}
-	body = lipgloss.JoinVertical(lipgloss.Left,
-		body,
-		connSection,
-		hostLine,
-		userLine,
-		portLine,
-	)
+	if c.Pid != "" {
+		lines = append(lines, " "+keyStyle.Render(fmt.Sprintf("%-4s", "pid"))+" "+valueStyle.Render(c.Pid))
+	}
+	if c.Uptime != "" && c.Uptime != "-" {
+		lines = append(lines, " "+keyStyle.Render(fmt.Sprintf("%-4s", "up"))+" "+valueStyle.Render(c.Uptime))
+	}
+	lines = append(lines, "")
 
-	return detailPanelStyle.Width(36).Render(body)
+	body := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	return detailPanelStyle.Render(body)
+}
+
+func renderTypeLabel(t config.ConnType) string {
+	switch t {
+	case config.TypeEC2:
+		return ec2Style.Render("AWS EC2")
+	case config.TypeGCP:
+		return gcpStyle.Render("GCP Compute")
+	case config.TypeAzure:
+		return azureStyle.Render("Azure VM")
+	case config.TypeTailscale:
+		return tailscaleStyle.Render("Tailscale")
+	case config.TypeMosh:
+		return moshStyle.Render("Mosh")
+	default:
+		return sshStyle.Render("SSH")
+	}
 }
 
 func LoadRows(m *Model) {

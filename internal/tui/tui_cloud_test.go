@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/hech/mash/internal/config"
 )
@@ -54,50 +54,50 @@ func TestCloudNavigationAndScreens(t *testing.T) {
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// Screen 1: Full browser with all 14 connections, row 0 (prod-db-primary).
-	assertGolden(t, "cloud_browser_initial", m.View())
+	assertGolden(t, "cloud_browser_initial", viewStr(m))
 
 	// Navigate to row 5 (first EC2: ec2-prod-web-us-east).
 	for i := 0; i < 5; i++ {
-		m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+		m, _ = step(m, keyRune('j'))
 	}
-	assertGolden(t, "cloud_browser_first_ec2", m.View())
+	assertGolden(t, "cloud_browser_first_ec2", viewStr(m))
 
 	// Enter selection on first EC2.
 	var cmd tea.Cmd
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
+	m, cmd = step(m, keyRune('l'))
 	if cmd == nil {
 		t.Fatal("expected ping command")
 	}
 	m, _ = step(m, pingResultMsg{ms: "42.1ms"})
-	assertGolden(t, "cloud_detail_ec2", m.View())
+	assertGolden(t, "cloud_detail_ec2", viewStr(m))
 
 	// Navigate down 2 to first GCP (gcp-data-processor).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "18.7ms"})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "22.3ms"})
-	assertGolden(t, "cloud_detail_gcp", m.View())
+	assertGolden(t, "cloud_detail_gcp", viewStr(m))
 
 	// Navigate down 2 to first Azure (az-sql-server-01).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "95.8ms"})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "101.2ms"})
-	assertGolden(t, "cloud_detail_azure", m.View())
+	assertGolden(t, "cloud_detail_azure", viewStr(m))
 
 	// Navigate down 2 to first Tailscale (home-server).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "1.2ms"})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "1.5ms"})
-	assertGolden(t, "cloud_detail_tailscale", m.View())
+	assertGolden(t, "cloud_detail_tailscale", viewStr(m))
 
 	// Leave selection.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
-	assertGolden(t, "cloud_browser_after_select", m.View())
+	m, _ = step(m, keyRune('h'))
+	assertGolden(t, "cloud_browser_after_select", viewStr(m))
 
 	// Quit.
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	m, cmd = step(m, keyRune('q'))
 	if cmd == nil {
 		t.Fatal("expected quit command")
 	}

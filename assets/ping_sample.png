@@ -1,38 +1,40 @@
- Mash - Mosh/SSH Connection Manager                                                                    
-┌──────────────────────────────────────────────────────────────┐ ┌────────────────────────────────────┐
-│ Name        Port      Type      Host        Uptime           │ │                                    │
-│──────────────────────────────────────────────────────────────│ │  Status                            │
-│ prod-db-p…  5432      SSH       10.0.2.100  -                │ │                                    │
-│ aws-basti…  22        SSH       bastion.a…  -                │ │  Ping: 42.1ms                      │
-│ redis-cac…  6379      SSH       10.0.3.50   -                │ │                                    │
-│ grafana-m…  3000      SSH       monitorin…  -                │ │  AWS EC2                           │
-│ nginx-lb-…  443       SSH       lb.exampl…  -                │ │                                    │
-│ ec2-prod-…  22        EC2       54.203.12…  -                │ │  Connection                        │
-│ ec2-stagi…  22        EC2       18.237.94…  -                │ │                                    │
-│ gcp-data-…  22        GCP       34.75.128…  -                │ │  host: 54.203.12.87                │
-│ gcp-ml-tr…  22        GCP       35.229.87…  -                │ │  user: ec2-user                    │
-│ az-sql-se…  22        Azure     20.121.44…  -                │ │  port: 22                          │
-│ az-k8s-no…  22        Azure     20.119.77…  -                │ │                                    │
-│ office-nas  443       Tailsca…  office-na…  -                │ └────────────────────────────────────┘
-│ vpn-gatew…  443       Tailsca…  vpn-gatew…  -                │                                       
-│ home-serv…  443       Tailsca…  home-serv…  -                │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-│                                                              │                                       
-└──────────────────────────────────────────────────────────────┘                                       
-  14 connections | h/left: back | j/k: change selection | q: quit                                      
+╭──────────────────────────────────────────────╮                                                     
+│  MASH  Mosh / SSH / Cloud Connection Manager │                                                     
+╰──────────────────────────────────────────────╯                                                     
+╭──────────────────────────────────────────────────────────────╮ ╭──────────────────────────────────╮
+│ Name        Port      Type      Host        Uptime           │ │                                  │
+│──────────────────────────────────────────────────────────────│ │   GCP Compute                    │
+│ prod-db-p…  5432      SSH       10.0.2.100  -                │ │                                  │
+│ aws-basti…  22        SSH       bastion.a…  -                │ │  Status                          │
+│ redis-cac…  6379      SSH       10.0.3.50   -                │ │  ────────────────────────        │
+│ grafana-m…  3000      SSH       monitorin…  -                │ │  ✓ 22.3ms                        │
+│ nginx-lb-…  443       SSH       lb.exampl…  -                │ │                                  │
+│ ec2-prod-…  22        EC2       54.203.12…  -                │ │  Connection                      │
+│ ec2-stagi…  22        EC2       18.237.94…  -                │ │  ────────────────────────        │
+│ gcp-data-…  22        GCP       34.75.128…  -                │ │  host 34.75.128.44               │
+│ gcp-ml-tr…  22        GCP       35.229.87…  -                │ │  user gcp-user                   │
+│ az-sql-se…  22        Azure     20.121.44…  -                │ │  port 22                         │
+│ az-k8s-no…  22        Azure     20.119.77…  -                │ │                                  │
+│ home-serv…  443       Tailsca…  home-serv…  -                │ ╰──────────────────────────────────╯
+│ office-nas  443       Tailsca…  office-na…  -                │                                     
+│ vpn-gatew…  443       Tailsca…  vpn-gatew…  -                │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+│                                                              │                                     
+╰──────────────────────────────────────────────────────────────╯                                     
+ 14  connections  · h  back  · j/k  switch  · q  quit                                                

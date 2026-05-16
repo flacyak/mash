@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/hech/mash/internal/config"
 )
@@ -69,40 +69,40 @@ func TestRealConfigNavigationAndScreens(t *testing.T) {
 	m, _ = step(m, tea.WindowSizeMsg{Width: 120, Height: 40})
 
 	// Screen 1: Browser view with 5 real connections, row 0 selected.
-	assertGolden(t, "real_browser_initial", m.View())
+	assertGolden(t, "real_browser_initial", viewStr(m))
 
 	// Navigate down twice to row 2 (redis-cache-01).
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
-	assertGolden(t, "real_browser_row3", m.View())
+	m, _ = step(m, keyRune('j'))
+	m, _ = step(m, keyRune('j'))
+	assertGolden(t, "real_browser_row3", viewStr(m))
 
 	// Enter selection with 'l' on redis-cache-01.
 	var cmd tea.Cmd
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
+	m, cmd = step(m, keyRune('l'))
 	if cmd == nil {
 		t.Fatal("expected ping command after entering selection")
 	}
 	m, _ = step(m, pingResultMsg{ms: "0.8ms"})
-	assertGolden(t, "real_detail_row3", m.View())
+	assertGolden(t, "real_detail_row3", viewStr(m))
 
 	// Navigate down to row 3 (grafana-monitoring) while selected.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	m, _ = step(m, keyRune('j'))
 	m, _ = step(m, pingResultMsg{ms: "2.3ms"})
-	assertGolden(t, "real_detail_row4", m.View())
+	assertGolden(t, "real_detail_row4", viewStr(m))
 
 	// Navigate up twice: back to redis, then to aws-bastion-us-east.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	m, _ = step(m, keyRune('k'))
 	m, _ = step(m, pingResultMsg{ms: "1.1ms"})
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}})
+	m, _ = step(m, keyRune('k'))
 	m, _ = step(m, pingResultMsg{ms: "15.4ms"})
-	assertGolden(t, "real_detail_row2", m.View())
+	assertGolden(t, "real_detail_row2", viewStr(m))
 
 	// Leave selection with 'h'.
-	m, _ = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
-	assertGolden(t, "real_browser_after_select", m.View())
+	m, _ = step(m, keyRune('h'))
+	assertGolden(t, "real_browser_after_select", viewStr(m))
 
 	// Quit with 'q'.
-	m, cmd = step(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	m, cmd = step(m, keyRune('q'))
 	if cmd == nil {
 		t.Fatal("expected quit command")
 	}
