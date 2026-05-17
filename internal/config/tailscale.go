@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 )
 
 // TailscaleStatus mirrors the output of "tailscale status --json".
@@ -71,6 +72,10 @@ func DiscoverTailscaleConnections(statusPath string) ([]Connection, error) {
 		}
 		conns = append(conns, c)
 	}
+
+	sort.Slice(conns, func(i, j int) bool {
+		return conns[i].Name < conns[j].Name
+	})
 
 	return conns, nil
 }

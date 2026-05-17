@@ -18,17 +18,17 @@ type OpenTofuState struct {
 
 // TofuResource is a single managed resource from the OpenTofu state.
 type TofuResource struct {
-	Type    string                `json:"type"`
-	Name    string                `json:"name"`
-	Values  json.RawMessage       `json:"values"`
-	Address string                `json:"address"`
+	Type    string          `json:"type"`
+	Name    string          `json:"name"`
+	Values  json.RawMessage `json:"values"`
+	Address string          `json:"address"`
 }
 
 // ec2InstanceValues mirrors the attributes produced by aws_instance.
 type ec2InstanceValues struct {
-	PublicIP    string            `json:"public_ip"`
-	PrivateIP   string            `json:"private_ip"`
-	Tags        map[string]string `json:"tags"`
+	PublicIP  string            `json:"public_ip"`
+	PrivateIP string            `json:"private_ip"`
+	Tags      map[string]string `json:"tags"`
 }
 
 // gcpInstanceValues mirrors google_compute_instance.
@@ -187,20 +187,6 @@ func parseAzure(res TofuResource) *Connection {
 		Host:   host,
 		User:   "azureuser",
 		Uptime: "-",
-	}
-}
-
-// cloudConnType maps a resource type string from OpenTofu to a ConnType.
-func cloudConnType(resType string) ConnType {
-	switch resType {
-	case "aws_instance":
-		return TypeEC2
-	case "google_compute_instance":
-		return TypeGCP
-	case "azurerm_linux_virtual_machine", "azurerm_windows_virtual_machine":
-		return TypeAzure
-	default:
-		return TypeSSH
 	}
 }
 

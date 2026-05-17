@@ -14,71 +14,79 @@ import (
 )
 
 const (
-	titleCardWidth   = 48
 	detailPanelWidth = 36
 	sectionRuleLen   = 24
+	mainColor        = "240"
+	groundColor      = "86"
+	subColor         = "245"
+	sshColor         = "75"
+	moshColor        = "240"
+	ec2Color         = "214"
+	gcpColor         = "39"
+	azureColor       = "33"
+	tailscaleColor   = "141"
 )
 
 var (
 	baseStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("240"))
+			BorderForeground(lipgloss.Color(mainColor))
 
 	titleCardStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("240")).
+			BorderForeground(lipgloss.Color(mainColor)).
 			Padding(0, 1)
 
 	titleBrandStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("86")).
+			Foreground(lipgloss.Color(groundColor)).
 			Bold(true)
 
 	titleSubStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("245"))
+			Foreground(lipgloss.Color(subColor))
 
 	footerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241"))
+			Foreground(lipgloss.Color(subColor))
 
 	footerKeyStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("86")).
+			Foreground(lipgloss.Color(groundColor)).
 			Bold(true)
 
 	footerSepStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240"))
+			Foreground(lipgloss.Color(mainColor))
 
-	sshStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("75")).Bold(true)
-	moshStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("204")).Bold(true)
-	ec2Style       = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
-	gcpStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true)
-	azureStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("33")).Bold(true)
-	tailscaleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("141")).Bold(true)
+	sshStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color(sshColor)).Bold(true)
+	moshStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color(moshColor)).Bold(true)
+	ec2Style       = lipgloss.NewStyle().Foreground(lipgloss.Color(ec2Color)).Bold(true)
+	gcpStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color(gcpColor)).Bold(true)
+	azureStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(azureColor)).Bold(true)
+	tailscaleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(tailscaleColor)).Bold(true)
 
 	detailPanelStyle = lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("240")).
+				BorderForeground(lipgloss.Color(mainColor)).
 				Padding(0, 1).
 				MarginLeft(1).
 				Width(detailPanelWidth)
 
 	sectionHeaderStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("86")).
+				Foreground(lipgloss.Color(groundColor)).
 				Bold(true)
 
 	sectionRuleStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("240"))
+				Foreground(lipgloss.Color(mainColor))
 
-	keyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	keyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color(subColor))
 	valueStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("229"))
 	pingOk     = lipgloss.NewStyle().Foreground(lipgloss.Color("120")).Bold(true)
-	pingFail   = lipgloss.NewStyle().Foreground(lipgloss.Color("204"))
-	pingWait   = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	pingFail   = lipgloss.NewStyle().Foreground(lipgloss.Color(moshColor))
+	pingWait   = lipgloss.NewStyle().Foreground(lipgloss.Color(subColor))
 
 	emptyHintStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("245")).
+			Foreground(lipgloss.Color(subColor)).
 			Italic(true)
 
 	searchPromptStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("86")).
+				Foreground(lipgloss.Color(groundColor)).
 				Bold(true)
 
 	searchQueryStyle = lipgloss.NewStyle().
@@ -86,7 +94,7 @@ var (
 				Bold(true)
 
 	searchCountStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("245"))
+				Foreground(lipgloss.Color(mainColor))
 )
 
 type Model struct {
@@ -140,7 +148,7 @@ func NewModel() Model {
 
 	s := table.DefaultStyles()
 	s.Header = s.Header.
-		Foreground(lipgloss.Color("245")).
+		Foreground(lipgloss.Color(mainColor)).
 		Border(lipgloss.NormalBorder(), false, false, true, false).
 		BorderForeground(lipgloss.Color("240")).
 		Bold(true)
@@ -530,4 +538,26 @@ func LoadConnections(m *Model) {
 
 	m.conns = conns
 	LoadRows(m)
+}
+
+func LoadWithTestData(m *Model, tofuPath, tailscalePath string) error {
+	conns := config.LoadAllSSHConnections()
+	moshConns := config.DiscoverMoshConnections()
+	conns = append(conns, moshConns...)
+
+	cloudConns, err := config.DiscoverCloudConnections(tofuPath)
+	if err != nil {
+		return err
+	}
+	conns = append(conns, cloudConns...)
+
+	tailConns, err := config.DiscoverTailscaleConnections(tailscalePath)
+	if err != nil {
+		return err
+	}
+	conns = append(conns, tailConns...)
+
+	m.conns = conns
+	LoadRows(m)
+	return nil
 }
