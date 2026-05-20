@@ -2,7 +2,7 @@
 
 A mosh/ssh manager that sync's with cloud infra.
 
-![demo](scripts/demo.gif "demo")
+![demo](scripts/demo.gif)
 
-![sample](assets/sample.png "sample")
-![detail](assets/ping_sample.png "detail")
+![sample](assets/sample.png)
+![detail](assets/ping_sample.png)
