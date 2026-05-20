@@ -1,0 +1,9 @@
+{
+  "hosts": {
+    "gcp-ml-training": {
+      "timeout": ["cloud firewall", "wrong IP address"],
+      "refused": ["sshd not running"],
+      "network": ["public wifi blocks outbound"]
+    }
+  }
+}
