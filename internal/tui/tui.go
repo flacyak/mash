@@ -71,7 +71,7 @@ func NewModel() Model {
 		Bold(true)
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
+		Background(lipgloss.Color(components.HexToANSIString("#1292b4"))).
 		Bold(false)
 	t.SetStyles(s)
 
