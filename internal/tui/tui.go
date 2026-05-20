@@ -11,6 +11,8 @@ import (
 
 	"github.com/hech/mash/internal/config"
 	"github.com/hech/mash/internal/tui/components"
+
+	"github.com/hech/mash/internal/vault"
 )
 
 type Model struct {
@@ -303,7 +305,7 @@ func (m Model) renderScreen() string {
 	}
 
 	c := m.conns[idx]
-	detailContent := components.DetailPanel(c, m.pingMs, m.pinging, m.issues.For(c.Name))
+	detailContent := components.DetailPanel(c, m.pingMs, m.pinging, m.issues.For(c.Name), vault.Has(c.Name))
 
 	return lipgloss.JoinVertical(lipgloss.Left, title,
 		lipgloss.JoinHorizontal(lipgloss.Top, tableContent, detailContent),

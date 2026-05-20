@@ -10,9 +10,9 @@ import (
 )
 
 // DetailPanel renders the right-hand panel that appears once a row is
-// selected: type label, ping status, connection metadata, and any
-// recorded "Common Issues" for the host.
-func DetailPanel(c config.Connection, pingMs string, pinging bool, issues config.HostIssues) string {
+// selected: type label, ping status, connection metadata, stored
+// credential indicator, and any recorded "Common Issues" for the host.
+func DetailPanel(c config.Connection, pingMs string, pinging bool, issues config.HostIssues, hasVaulted bool) string {
 	if c.User == "" {
 		c.User = "-"
 	}
@@ -51,6 +51,9 @@ func DetailPanel(c config.Connection, pingMs string, pinging bool, issues config
 	}
 	if c.Uptime != "" && c.Uptime != "-" {
 		lines = append(lines, " "+KeyStyle.Render(fmt.Sprintf("%-4s", "up"))+" "+ValueStyle.Render(c.Uptime))
+	}
+	if hasVaulted {
+		lines = append(lines, " "+KeyStyle.Render(fmt.Sprintf("%-4s", "auth"))+" "+PingOk.Render("stored"))
 	}
 
 	if issueLines := renderIssueLines(issues, rule); len(issueLines) > 0 {
