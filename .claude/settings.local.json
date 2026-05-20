@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vhs --version)",
+      "Bash(go build *)",
+      "Bash(rm /tmp/mash-demo-check)",
+      "Bash(vhs scripts/demo.vhs)",
+      "Bash(ffprobe -v error -show_entries format=duration scripts/demo.gif)",
+      "Read(//tmp/**)",
+      "Bash(timeout 2 ./mash-demo)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(ffmpeg -y -ss 3 -i /home/hech/Documents/opensouce/mash/scripts/demo.gif -frames:v 1 mid.png)",
+      "Bash(ffmpeg -y -ss 7 -i /home/hech/Documents/opensouce/mash/scripts/demo.gif -frames:v 1 detail.png)"
+    ]
+  }
+}

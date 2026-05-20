@@ -1,37 +1,53 @@
 Output scripts/demo.gif
 
-Set FontSize 18
-Set Width 120
-Set Height 40
-Set Padding 0
+Set FontSize 16
+Set Width 1200
+Set Height 720
+Set Padding 10
 Set Framerate 30
+Set TypingSpeed 60ms
 
+# Build the demo binary out of frame; the GIF starts after `Show`.
 Hide
-Type "cd /home/hech/Documents/opensouce/mash && go build -o scripts/demo/mash-demo ./scripts/demo && clear"
+Type "cd /home/hech/Documents/opensouce/mash && go build -o /tmp/mash-demo ./scripts/demo && cd /tmp && clear"
 Enter
-Sleep 2s
+Sleep 5s
 
 Show
-Type "scripts/demo/mash-demo"
-Sleep 500ms
+Type "./mash-demo"
+Sleep 300ms
 Enter
 
-Sleep 1s
+# Let the user take in the full 14-connection list.
+Sleep 1500ms
 
-# Navigate down 5 rows to reach ec2-prod-web-us-east (same as cloud_browser_first_ec2 test)
+# Walk down through SSH, EC2 and into GCP rows so each colour-coded
+# type is visible in turn. Minimum 250ms between keystrokes.
 Down
+Sleep 250ms
 Down
+Sleep 250ms
 Down
+Sleep 250ms
 Down
+Sleep 250ms
 Down
+Sleep 250ms
+Down
+Sleep 250ms
+Down
+Sleep 250ms
+Down
+Sleep 400ms
 
-Sleep 2s
+# Select the highlighted connection to open the detail panel.
+Type "l"
+Sleep 4s
 
-# Quit
-Ctrl+C
-
-Sleep 500ms
+# Quit and clean up out of frame.
+Type "q"
+Sleep 300ms
 
 Hide
-Type "rm -f scripts/demo/mash-demo"
+Type "rm -f /tmp/mash-demo"
 Enter

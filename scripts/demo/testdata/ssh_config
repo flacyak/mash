@@ -1,0 +1,24 @@
+Host prod-db-primary
+    HostName 10.0.2.100
+    Port 5432
+    User dbadmin
+
+Host aws-bastion-us-east
+    HostName bastion.aws.example.com
+    Port 22
+    User ec2-user
+
+Host redis-cache-01
+    HostName 10.0.3.50
+    Port 6379
+    User redis
+
+Host grafana-monitoring
+    HostName monitoring.internal.example.com
+    Port 3000
+    User admin
+
+Host nginx-lb-public
+    HostName lb.example.com
+    Port 443
+    User nginx
