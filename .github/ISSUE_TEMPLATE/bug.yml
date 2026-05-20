@@ -1,0 +1,39 @@
+name: BUG
+description: File a bug report. Not for feature requests or questions.
+labels: [bug]
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before you submit
+      description: >
+        Please confirm all three items below. Issues that skip these checks
+        may be closed without response.
+      options:
+        - label: I have searched **closed** issues and did not find a matching report.
+          required: true
+        - label: I have searched **open** issues and did not find a matching report.
+          required: true
+        - label: This is a **bug report** — not a feature request or a question.
+          required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the exact steps that trigger the bug.
+      placeholder: |
+        1. Run `mash`
+        2. Press …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Issue report
+      description: >
+        Describe what you expected to happen and what actually happened.
+        Include version, OS, terminal emulator, and any relevant logs or
+        screenshots.
+    validations:
+      required: true
